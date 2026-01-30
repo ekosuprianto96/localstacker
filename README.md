@@ -1,4 +1,4 @@
-# NusaCloud CLI
+# Localsatcker CLI
 
 🚀 **Automated SSL Setup Tool for Nginx with mkcert**
 
