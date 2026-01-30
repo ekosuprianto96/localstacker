@@ -1,0 +1,453 @@
+# Contributing to NusaCloud CLI
+
+Thank you for your interest in contributing! This guide will help you get started.
+
+## Code of Conduct
+
+- Be respectful and inclusive
+- Focus on constructive feedback
+- Help others learn and grow
+- Follow the project's coding standards
+
+## Getting Started
+
+### Prerequisites
+
+- Rust 1.70 or higher
+- Git
+- Nginx (for testing)
+- Basic understanding of SOLID principles
+
+### Development Setup
+
+1. **Fork and clone the repository**
+
+```bash
+git clone https://github.com/ekosuprianto96/localstacker.git
+cd localstacker
+```
+
+2. **Build the project**
+
+```bash
+cargo build
+```
+
+3. **Run tests**
+
+```bash
+cargo test
+```
+
+4. **Run clippy (linter)**
+
+```bash
+cargo clippy -- -D warnings
+```
+
+5. **Format code**
+
+```bash
+cargo fmt
+```
+
+## Project Architecture
+
+Please read [ARCHITECTURE.md](ARCHITECTURE.md) to understand:
+- SOLID principles implementation
+- Module structure
+- Design patterns used
+- How to extend the system
+
+## Making Changes
+
+### Branching Strategy
+
+- `main` - stable, production-ready code
+- `develop` - integration branch for features
+- `feature/*` - new features
+- `fix/*` - bug fixes
+- `docs/*` - documentation updates
+
+### Workflow
+
+1. **Create a new branch**
+
+```bash
+git checkout -b feature/my-new-feature
+```
+
+2. **Make your changes**
+
+Follow the coding standards (see below)
+
+3. **Test your changes**
+
+```bash
+# Run tests
+cargo test
+
+# Run with dry-run
+sudo cargo run -- setup --domain test.local --port 3000 --dry-run --verbose
+```
+
+4. **Commit your changes**
+
+```bash
+git add .
+git commit -m "feat: add new certificate provider"
+```
+
+**Commit message format:**
+- `feat:` - new feature
+- `fix:` - bug fix
+- `docs:` - documentation changes
+- `refactor:` - code refactoring
+- `test:` - adding tests
+- `chore:` - maintenance tasks
+
+5. **Push to your fork**
+
+```bash
+git push origin feature/my-new-feature
+```
+
+6. **Create a Pull Request**
+
+- Go to the original repository
+- Click "New Pull Request"
+- Select your branch
+- Fill in the PR template
+- Wait for review
+
+## Coding Standards
+
+### Rust Style Guide
+
+Follow the [Rust Style Guide](https://doc.rust-lang.org/1.0.0/style/):
+
+```rust
+// Good: descriptive names
+fn generate_nginx_config(domain: &str, port: u16) -> Result<String> {
+    // Implementation
+}
+
+// Bad: unclear names
+fn gen(d: &str, p: u16) -> Result<String> {
+    // Implementation
+}
+```
+
+### SOLID Principles
+
+When adding new features, follow SOLID:
+
+**Single Responsibility:**
+```rust
+// Good: Each struct has one job
+struct MkcertProvider;  // Only handles mkcert
+struct NginxConfig;     // Only handles nginx
+
+// Bad: God object
+struct SSLManager;      // Does everything
+```
+
+**Open/Closed:**
+```rust
+// Good: Extend via trait implementation
+pub trait CertificateProvider {
+    fn generate_cert(&self, domain: &str) -> Result<()>;
+}
+
+// New provider without modifying existing code
+pub struct LetsEncryptProvider;
+impl CertificateProvider for LetsEncryptProvider { /* ... */ }
+```
+
+**Interface Segregation:**
+```rust
+// Good: Small, focused interfaces
+pub trait CertificateProvider { /* cert operations */ }
+pub trait WebServerConfig { /* web server operations */ }
+
+// Bad: One large interface
+pub trait Infrastructure { /* everything */ }
+```
+
+### Error Handling
+
+Always use `Result` types:
+
+```rust
+// Good
+pub fn setup_ssl(domain: &str) -> Result<()> {
+    validate_domain(domain)?;
+    generate_cert(domain)?;
+    Ok(())
+}
+
+// Bad
+pub fn setup_ssl(domain: &str) {
+    // Using panics or unwrap everywhere
+    validate_domain(domain).unwrap();
+    generate_cert(domain).unwrap();
+}
+```
+
+### Documentation
+
+Add doc comments for public APIs:
+
+```rust
+/// Generates an SSL certificate for the specified domain.
+///
+/// # Arguments
+///
+/// * `domain` - The domain name for which to generate the certificate
+///
+/// # Returns
+///
+/// Returns `Ok(())` if successful, or an `Error` if generation fails.
+///
+/// # Examples
+///
+/// ```
+/// let provider = MkcertProvider::new();
+/// provider.generate_cert("example.local")?;
+/// ```
+pub fn generate_cert(&self, domain: &str) -> Result<()> {
+    // Implementation
+}
+```
+
+### Testing
+
+Add tests for new features:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_domain_validation() {
+        assert!(validate_domain("valid.local").is_ok());
+        assert!(validate_domain("invalid..local").is_err());
+    }
+
+    #[test]
+    fn test_config_generation() {
+        let config = NginxConfig::new();
+        let result = config.generate_config("test.local", 3000, None);
+        assert!(result.is_ok());
+        assert!(result.unwrap().contains("test.local"));
+    }
+}
+```
+
+## What to Contribute
+
+### High Priority
+
+- [ ] Let's Encrypt integration
+- [ ] Apache web server support
+- [ ] Certificate renewal automation
+- [ ] Configuration templates repository
+- [ ] Comprehensive test suite
+
+### Medium Priority
+
+- [ ] Caddy web server support
+- [ ] Traefik support
+- [ ] Backup/restore functionality
+- [ ] Configuration validation
+- [ ] Better error messages
+
+### Low Priority
+
+- [ ] Shell completion scripts
+- [ ] Man pages
+- [ ] Additional examples
+- [ ] Performance optimizations
+- [ ] Localization (i18n)
+
+### Documentation
+
+- Improve existing docs
+- Add more examples
+- Create tutorials
+- Add troubleshooting guides
+- Translate documentation
+
+## Adding New Features
+
+### Example: Adding a New Certificate Provider
+
+1. **Create the implementation**
+
+```rust
+// src/core/letsencrypt.rs
+use crate::core::CertificateProvider;
+use crate::error::Result;
+
+pub struct LetsEncryptProvider;
+
+impl CertificateProvider for LetsEncryptProvider {
+    fn is_installed(&self) -> Result<bool> {
+        // Implementation
+    }
+
+    fn generate_cert(&self, domain: &str) -> Result<()> {
+        // Implementation
+    }
+    
+    // ... other methods
+}
+```
+
+2. **Add tests**
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_letsencrypt_generation() {
+        let provider = LetsEncryptProvider::new();
+        // Test implementation
+    }
+}
+```
+
+3. **Update exports**
+
+```rust
+// src/core/mod.rs
+mod letsencrypt;
+pub use letsencrypt::LetsEncryptProvider;
+```
+
+4. **Add command option**
+
+```rust
+// src/main.rs
+#[derive(Subcommand)]
+enum Commands {
+    Setup {
+        // ...
+        #[arg(long)]
+        provider: Option<String>, // "mkcert" or "letsencrypt"
+    }
+}
+```
+
+5. **Update documentation**
+
+- Add to README.md
+- Add example to QUICKSTART.md
+- Document in ARCHITECTURE.md
+
+## Reporting Bugs
+
+Use the GitHub issue tracker:
+
+1. **Check existing issues** - maybe it's already reported
+2. **Create a new issue** with:
+   - Clear title
+   - Steps to reproduce
+   - Expected behavior
+   - Actual behavior
+   - System information
+   - Logs (with `--verbose`)
+
+**Good bug report:**
+
+```
+Title: SSL setup fails for domains with hyphens
+
+Steps to reproduce:
+1. Run: sudo localstacker setup --domain my-app.local --port 3000
+2. Observe error
+
+Expected: SSL should be configured successfully
+Actual: Error: "Invalid domain name"
+
+System:
+- OS: Ubuntu 22.04
+- Rust: 1.75.0
+- localstacker: 0.1.0
+
+Logs:
+[paste verbose output]
+```
+
+## Feature Requests
+
+1. **Check existing requests** - avoid duplicates
+2. **Describe the use case** - why is this needed?
+3. **Propose a solution** - how should it work?
+4. **Consider alternatives** - what else could solve this?
+
+**Good feature request:**
+
+```
+Title: Add support for wildcard certificates
+
+Use case:
+I have multiple subdomains (api.app.local, admin.app.local, etc.) 
+and want a single wildcard certificate (*.app.local)
+
+Proposed solution:
+Add --wildcard flag to setup command:
+sudo localstacker setup --domain app.local --port 3000 --wildcard
+
+Alternatives:
+- Setup each subdomain separately (current workaround)
+- Use Let's Encrypt DNS challenge (future)
+```
+
+## Pull Request Process
+
+1. **Ensure all tests pass**
+2. **Update documentation** if needed
+3. **Add tests** for new features
+4. **Follow coding standards**
+5. **Write clear commit messages**
+6. **Reference related issues**
+
+### PR Checklist
+
+- [ ] Code follows style guidelines
+- [ ] Tests added and passing
+- [ ] Documentation updated
+- [ ] CHANGELOG.md updated
+- [ ] No breaking changes (or documented)
+- [ ] Commit messages are clear
+
+### Review Process
+
+1. Maintainer reviews your PR
+2. Address feedback if any
+3. PR is approved and merged
+4. Your contribution is in the next release! 🎉
+
+## Questions?
+
+- Open a GitHub Discussion
+- Check existing documentation
+- Ask in issues (tag with `question`)
+- Read [ARCHITECTURE.md](ARCHITECTURE.md)
+
+## Recognition
+
+Contributors will be:
+- Listed in CONTRIBUTORS.md
+- Mentioned in release notes
+- Part of the project's success!
+
+Thank you for contributing! 🙏
+
+---
+
+**Remember:** Every contribution, no matter how small, is valued!
