@@ -20,3 +20,6 @@ Thumbs.db
 # Testing
 *.pem
 *-key.pem
+
+# Docs
+/docs/
