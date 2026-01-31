@@ -13,7 +13,7 @@ use commands::{setup, list, remove, status};
 #[command(
     name = "localstacker",
     author = "NusaCloud Team",
-    version = "0.1.0",
+    version = env!("CARGO_PKG_VERSION"),
     about = "Automated SSL setup tool for Nginx with mkcert",
     long_about = None
 )]
