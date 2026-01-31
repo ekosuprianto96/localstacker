@@ -129,8 +129,12 @@ pub fn run(
         enabled: true,
     };
 
-    config_manager.add_domain(domain_config)?;
-    log_success("Configuration saved");
+    let was_update = config_manager.upsert_domain(domain_config)?;
+    if was_update {
+        log_success("Configuration updated");
+    } else {
+        log_success("Configuration saved");
+    }
 
     // Final success message
     println!();

@@ -96,6 +96,15 @@ sudo localstacker setup \
   --yes
 ```
 
+Re-run setup to regenerate certificates or update configuration (auto-updates existing domain):
+
+```bash
+sudo localstacker setup \
+  --domain myapp.local \
+  --port 4000 \
+  --yes
+```
+
 Use custom Nginx template:
 
 ```bash

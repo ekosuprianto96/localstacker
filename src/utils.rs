@@ -1,7 +1,38 @@
 use colored::Colorize;
+use std::collections::HashMap;
 use std::process::{Command, Output};
 
 use crate::error::{Error, Result};
+
+/// Get the real user's home directory, even when running as sudo.
+/// This is important for mkcert to use the correct CA root.
+pub fn get_real_user_home() -> Option<String> {
+    // Check if we're running under sudo
+    if let Ok(sudo_user) = std::env::var("SUDO_USER") {
+        // Get the home directory of the original user
+        if let Ok(output) = Command::new("getent")
+            .args(["passwd", &sudo_user])
+            .output()
+        {
+            if output.status.success() {
+                let passwd_entry = String::from_utf8_lossy(&output.stdout);
+                // passwd format: username:x:uid:gid:gecos:homedir:shell
+                let parts: Vec<&str> = passwd_entry.split(':').collect();
+                if parts.len() >= 6 {
+                    return Some(parts[5].to_string());
+                }
+            }
+        }
+    }
+    
+    // Fallback to HOME environment variable
+    std::env::var("HOME").ok()
+}
+
+/// Get the mkcert CAROOT path for the real user
+pub fn get_mkcert_caroot() -> Option<String> {
+    get_real_user_home().map(|home| format!("{}/.local/share/mkcert", home))
+}
 
 pub fn is_verbose() -> bool {
     std::env::var("NUSACLOUD_VERBOSE").is_ok()
@@ -61,6 +92,58 @@ pub fn execute_command(program: &str, args: &[&str], description: &str) -> Resul
             "{} failed: {}",
             description, stderr
         )));
+    }
+
+    Ok(output)
+}
+
+/// Execute a command with custom environment variables
+pub fn execute_command_with_env(
+    program: &str,
+    args: &[&str],
+    env_vars: HashMap<&str, &str>,
+    description: &str,
+) -> Result<Output> {
+    let env_display: Vec<String> = env_vars
+        .iter()
+        .map(|(k, v)| format!("{}={}", k, v))
+        .collect();
+    log_verbose(&format!(
+        "Executing: {} {} {}",
+        env_display.join(" "),
+        program,
+        args.join(" ")
+    ));
+
+    if is_dry_run() {
+        log_info(&format!(
+            "[DRY RUN] Would execute: {} {} {}",
+            env_display.join(" "),
+            program,
+            args.join(" ")
+        ));
+        return Ok(Output {
+            status: std::process::ExitStatus::default(),
+            stdout: vec![],
+            stderr: vec![],
+        });
+    }
+
+    let mut cmd = Command::new(program);
+    cmd.args(args);
+    
+    // Set environment variables
+    for (key, value) in env_vars {
+        cmd.env(key, value);
+    }
+
+    let output = cmd
+        .output()
+        .map_err(|e| Error::Command(format!("Failed to execute {}: {}", program, e)))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(Error::Command(format!("{} failed: {}", description, stderr)));
     }
 
     Ok(output)

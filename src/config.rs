@@ -54,6 +54,15 @@ impl ConfigManager {
         Ok(())
     }
 
+    /// Add a new domain or update existing one
+    /// Returns true if domain was updated, false if newly added
+    pub fn upsert_domain(&mut self, config: DomainConfig) -> Result<bool> {
+        let was_update = self.domains.contains_key(&config.domain);
+        self.domains.insert(config.domain.clone(), config);
+        self.save()?;
+        Ok(was_update)
+    }
+
     pub fn add_domain(&mut self, config: DomainConfig) -> Result<()> {
         if self.domains.contains_key(&config.domain) {
             return Err(Error::Already(format!(
