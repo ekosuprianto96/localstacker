@@ -9,7 +9,7 @@ pub enum Error {
     Validation(String),
     NotFound(String),
     Permission(String),
-    Already(String),
+    // Already(String),
     Config(String),
 }
 
@@ -21,7 +21,7 @@ impl fmt::Display for Error {
             Error::Validation(msg) => write!(f, "Validation error: {}", msg),
             Error::NotFound(msg) => write!(f, "Not found: {}", msg),
             Error::Permission(msg) => write!(f, "Permission denied: {}", msg),
-            Error::Already(msg) => write!(f, "Already exists: {}", msg),
+            // Error::Already(msg) => write!(f, "Already exists: {}", msg),
             Error::Config(msg) => write!(f, "Configuration error: {}", msg),
         }
     }

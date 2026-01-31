@@ -63,18 +63,18 @@ impl ConfigManager {
         Ok(was_update)
     }
 
-    pub fn add_domain(&mut self, config: DomainConfig) -> Result<()> {
-        if self.domains.contains_key(&config.domain) {
-            return Err(Error::Already(format!(
-                "Domain '{}' already exists in configuration",
-                config.domain
-            )));
-        }
+    // pub fn add_domain(&mut self, config: DomainConfig) -> Result<()> {
+    //     if self.domains.contains_key(&config.domain) {
+    //         return Err(Error::Already(format!(
+    //             "Domain '{}' already exists in configuration",
+    //             config.domain
+    //         )));
+    //     }
         
-        self.domains.insert(config.domain.clone(), config);
-        self.save()?;
-        Ok(())
-    }
+    //     self.domains.insert(config.domain.clone(), config);
+    //     self.save()?;
+    //     Ok(())
+    // }
 
     pub fn remove_domain(&mut self, domain: &str) -> Result<DomainConfig> {
         let config = self.domains.remove(domain).ok_or_else(|| {
