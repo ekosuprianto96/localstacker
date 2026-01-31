@@ -55,17 +55,59 @@ localstacker/
 
 ### Prerequisites
 
-- Rust 1.70+ (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
 - Nginx installed and running
 - Root/sudo access
+- Rust 1.70+ (will be auto-installed if missing)
 
-### Build from source
+### Option 1: Quick Install (Recommended)
 
 ```bash
-git clone <repository>
+git clone https://github.com/ekosuprianto96/localstacker.git
 cd localstacker
+
+# Run install script (builds and installs automatically)
+chmod +x install.sh
+./install.sh
+```
+
+The script will:
+- ✅ Check/install Rust if needed
+- ✅ Build optimized release binary
+- ✅ Install to `/usr/local/bin/` (if running as root)
+
+### Option 2: Using Makefile
+
+```bash
+git clone https://github.com/ekosuprianto96/localstacker.git
+cd localstacker
+
+# Build and install (requires sudo)
+make install
+```
+
+### Option 3: Manual Build
+
+```bash
+git clone https://github.com/ekosuprianto96/localstacker.git
+cd localstacker
+
+# Build release binary
 cargo build --release
+
+# Install system-wide
 sudo cp target/release/localstacker /usr/local/bin/
+
+# Or install for current user only
+mkdir -p ~/.local/bin
+cp target/release/localstacker ~/.local/bin/
+# Add ~/.local/bin to PATH in your shell config
+```
+
+### Verify Installation
+
+```bash
+localstacker --version
+localstacker --help
 ```
 
 ## 🚀 Usage
