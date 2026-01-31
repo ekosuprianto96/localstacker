@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🚀 Building NusaCloud CLI..."
+echo "🚀 Building localstacker CLI..."
 echo ""
 
 # Check if Rust is installed
